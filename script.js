@@ -67,8 +67,6 @@ const state = {
   filterStatus: "All",
   sortBy: "applicationDate",
   sortDirection: "desc",
-  pendingDelete: null,
-  pendingDeleteTimeoutId: null,
 };
 
 const els = {
@@ -92,9 +90,6 @@ const els = {
   tbody: document.getElementById("jobs-tbody"),
   rowTemplate: document.getElementById("row-template"),
   summary: document.getElementById("summary"),
-  toast: document.getElementById("toast"),
-  toastMessage: document.getElementById("toast-message"),
-  undoDeleteBtn: document.getElementById("undo-delete-btn"),
 };
 
 init();
@@ -132,7 +127,6 @@ function bindEvents() {
   els.tbody.addEventListener("click", handleTableAction);
   els.exportCsvBtn.addEventListener("click", exportCsv);
   els.csvImportInput.addEventListener("change", importCsv);
-  els.undoDeleteBtn.addEventListener("click", undoDelete);
   els.state.addEventListener("change", handleStateChange);
 }
 
@@ -191,48 +185,15 @@ function deleteWithUndo(id) {
   const deleted = state.jobs.find((job) => job.id === id);
   if (!deleted) return;
 
-  clearPendingDelete();
-  state.pendingDelete = deleted;
+  const confirmed = window.confirm(`Delete ${deleted.company} — ${deleted.position}?`);
+  if (!confirmed) return;
+
   state.jobs = state.jobs.filter((job) => job.id !== id);
   if (els.jobId.value === id) {
     resetForm();
   }
   persistJobs();
   render();
-
-  showToast(`Deleted ${deleted.company} — ${deleted.position}`);
-  state.pendingDeleteTimeoutId = window.setTimeout(() => {
-    clearPendingDelete();
-    hideToast();
-  }, 6000);
-}
-
-function undoDelete() {
-  if (!state.pendingDelete) return;
-  state.jobs.push(state.pendingDelete);
-  persistJobs();
-  render();
-  clearPendingDelete();
-  showToast("Delete undone.");
-  window.setTimeout(hideToast, 2000);
-}
-
-function clearPendingDelete() {
-  if (state.pendingDeleteTimeoutId) {
-    clearTimeout(state.pendingDeleteTimeoutId);
-  }
-  state.pendingDelete = null;
-  state.pendingDeleteTimeoutId = null;
-}
-
-function showToast(message) {
-  els.toastMessage.textContent = message;
-  els.toast.hidden = false;
-}
-
-function hideToast() {
-  els.toast.hidden = true;
-  els.toastMessage.textContent = "";
 }
 
 function populateStateOptions() {
