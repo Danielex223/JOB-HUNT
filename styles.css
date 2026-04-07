@@ -1,0 +1,251 @@
+:root {
+  color-scheme: light;
+  --bg: radial-gradient(circle at top left, #f0f6ff 0%, #edf3ff 40%, #f8efff 100%);
+  --card: rgba(255, 255, 255, 0.88);
+  --text: #17253b;
+  --muted: #5f6c84;
+  --accent: #2d7ff9;
+  --accent-2: #8f54ff;
+  --danger: #db3d55;
+  --border: #d4def0;
+  --success: #16996f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  width: min(1120px, 94vw);
+  margin: 1.3rem auto 2.2rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.header {
+  padding: 1.2rem;
+  border-radius: 16px;
+  background: linear-gradient(120deg, rgba(45, 127, 249, 0.95), rgba(143, 84, 255, 0.95));
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(45, 127, 249, 0.25);
+}
+
+.header h1 {
+  margin: 0 0 0.25rem;
+  letter-spacing: 0.2px;
+}
+
+.header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 8px 28px rgba(16, 27, 48, 0.09);
+  backdrop-filter: blur(8px);
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.form-grid,
+.controls-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  background: #fff;
+  transition: box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(45, 127, 249, 0.2);
+}
+
+textarea {
+  resize: vertical;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-actions,
+.import-export,
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.btn {
+  border: 1px solid transparent;
+  background: #eef3ff;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.btn.primary {
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  color: #fff;
+}
+
+.btn.danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn.ghost {
+  background: #fff;
+  border-color: var(--border);
+}
+
+.btn.small {
+  padding: 0.28rem 0.55rem;
+  font-size: 0.81rem;
+}
+
+.file-upload {
+  display: inline-flex;
+}
+
+#csv-import-input {
+  display: none;
+}
+
+#summary {
+  margin-top: -0.25rem;
+  color: var(--muted);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  padding: 0.6rem;
+  vertical-align: top;
+}
+
+th {
+  white-space: nowrap;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+}
+
+td {
+  font-size: 0.92rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  border-radius: 999px;
+  font-weight: 600;
+  padding: 0.2rem 0.58rem;
+  font-size: 0.8rem;
+}
+
+.status-pill::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.status-applied {
+  color: #2452a8;
+  background: #dce9ff;
+}
+
+.status-interview-scheduled {
+  color: #6a3db8;
+  background: #eadfff;
+}
+
+.status-offer {
+  color: #0f7c5a;
+  background: #d4f5eb;
+}
+
+.status-rejected {
+  color: #ab283f;
+  background: #ffdbe3;
+}
+
+.status-archived {
+  color: #4d5f79;
+  background: #e8edf5;
+}
+
+@media (max-width: 680px) {
+  .app {
+    width: 96vw;
+  }
+
+  .header,
+  .card {
+    padding: 0.85rem;
+  }
+}
