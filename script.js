@@ -210,7 +210,12 @@ function render() {
   }
 
   const scheduled = state.jobs.filter((job) => job.interviewDate).length;
-  els.summary.textContent = `${visible.length} shown / ${state.jobs.length} total jobs • ${scheduled} with interview dates`;
+  const offers = state.jobs.filter((job) => job.status === "Offer").length;
+  els.summary.textContent = `${visible.length} shown / ${state.jobs.length} total jobs • ${scheduled} interviews set • ${offers} offers`;
+}
+
+function statusClass(status) {
+  return `status-${status.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 }
 
 function loadJobs() {

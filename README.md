@@ -10,6 +10,7 @@ A complete browser-based tracker for job applications and interviews, built with
 - Persistent data storage with `localStorage`.
 - CSV export and import support.
 - Browser notifications for interviews scheduled for **today**.
+- Responsive, lively UI with colorful status badges and a polished dashboard style.
 - Responsive UI for desktop and mobile.
 
 ## Project Structure
