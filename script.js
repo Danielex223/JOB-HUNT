@@ -9,6 +9,59 @@ const STATUS_ORDER = {
   Archived: 5,
 };
 
+const STATE_CITIES = {
+  AL: ["Birmingham", "Montgomery", "Mobile", "Huntsville"],
+  AK: ["Anchorage", "Fairbanks", "Juneau", "Sitka"],
+  AZ: ["Phoenix", "Tucson", "Mesa", "Scottsdale"],
+  AR: ["Little Rock", "Fayetteville", "Fort Smith", "Jonesboro"],
+  CA: ["Los Angeles", "San Diego", "San Jose", "San Francisco"],
+  CO: ["Denver", "Colorado Springs", "Aurora", "Boulder"],
+  CT: ["Bridgeport", "New Haven", "Stamford", "Hartford"],
+  DE: ["Wilmington", "Dover", "Newark", "Middletown"],
+  FL: ["Jacksonville", "Miami", "Tampa", "Orlando"],
+  GA: ["Atlanta", "Augusta", "Savannah", "Athens"],
+  HI: ["Honolulu", "Hilo", "Kailua", "Pearl City"],
+  ID: ["Boise", "Meridian", "Nampa", "Idaho Falls"],
+  IL: ["Chicago", "Aurora", "Naperville", "Springfield"],
+  IN: ["Indianapolis", "Fort Wayne", "Evansville", "South Bend"],
+  IA: ["Des Moines", "Cedar Rapids", "Davenport", "Iowa City"],
+  KS: ["Wichita", "Overland Park", "Kansas City", "Topeka"],
+  KY: ["Louisville", "Lexington", "Bowling Green", "Owensboro"],
+  LA: ["New Orleans", "Baton Rouge", "Shreveport", "Lafayette"],
+  ME: ["Portland", "Lewiston", "Bangor", "South Portland"],
+  MD: ["Baltimore", "Frederick", "Rockville", "Gaithersburg"],
+  MA: ["Boston", "Worcester", "Springfield", "Cambridge"],
+  MI: ["Detroit", "Grand Rapids", "Ann Arbor", "Lansing"],
+  MN: ["Minneapolis", "Saint Paul", "Rochester", "Duluth"],
+  MS: ["Jackson", "Gulfport", "Southaven", "Hattiesburg"],
+  MO: ["Kansas City", "St. Louis", "Springfield", "Columbia"],
+  MT: ["Billings", "Missoula", "Great Falls", "Bozeman"],
+  NE: ["Omaha", "Lincoln", "Bellevue", "Grand Island"],
+  NV: ["Las Vegas", "Henderson", "Reno", "North Las Vegas"],
+  NH: ["Manchester", "Nashua", "Concord", "Dover"],
+  NJ: ["Newark", "Jersey City", "Paterson", "Elizabeth"],
+  NM: ["Albuquerque", "Las Cruces", "Santa Fe", "Rio Rancho"],
+  NY: ["New York", "Buffalo", "Rochester", "Albany"],
+  NC: ["Charlotte", "Raleigh", "Greensboro", "Durham"],
+  ND: ["Fargo", "Bismarck", "Grand Forks", "Minot"],
+  OH: ["Columbus", "Cleveland", "Cincinnati", "Toledo"],
+  OK: ["Oklahoma City", "Tulsa", "Norman", "Broken Arrow"],
+  OR: ["Portland", "Eugene", "Salem", "Gresham"],
+  PA: ["Philadelphia", "Pittsburgh", "Allentown", "Harrisburg"],
+  RI: ["Providence", "Warwick", "Cranston", "Pawtucket"],
+  SC: ["Charleston", "Columbia", "North Charleston", "Greenville"],
+  SD: ["Sioux Falls", "Rapid City", "Aberdeen", "Brookings"],
+  TN: ["Nashville", "Memphis", "Knoxville", "Chattanooga"],
+  TX: ["Houston", "San Antonio", "Dallas", "Austin"],
+  UT: ["Salt Lake City", "West Valley City", "Provo", "Ogden"],
+  VT: ["Burlington", "South Burlington", "Rutland", "Barre"],
+  VA: ["Virginia Beach", "Norfolk", "Richmond", "Alexandria"],
+  WA: ["Seattle", "Spokane", "Tacoma", "Vancouver"],
+  WV: ["Charleston", "Huntington", "Morgantown", "Parkersburg"],
+  WI: ["Milwaukee", "Madison", "Green Bay", "Kenosha"],
+  WY: ["Cheyenne", "Casper", "Laramie", "Gillette"],
+};
+
 const state = {
   jobs: [],
   filterStatus: "All",
@@ -26,7 +79,8 @@ const els = {
   status: document.getElementById("status"),
   applicationDate: document.getElementById("applicationDate"),
   interviewDate: document.getElementById("interviewDate"),
-  location: document.getElementById("location"),
+  state: document.getElementById("state"),
+  city: document.getElementById("city"),
   notes: document.getElementById("notes"),
   cancelEditBtn: document.getElementById("cancel-edit-btn"),
   clearFormBtn: document.getElementById("clear-form-btn"),
@@ -47,6 +101,7 @@ init();
 
 function init() {
   state.jobs = loadJobs();
+  populateStateOptions();
   bindEvents();
   render();
   maybeTriggerInterviewNotifications();
@@ -78,6 +133,7 @@ function bindEvents() {
   els.exportCsvBtn.addEventListener("click", exportCsv);
   els.csvImportInput.addEventListener("change", importCsv);
   els.undoDeleteBtn.addEventListener("click", undoDelete);
+  els.state.addEventListener("change", handleStateChange);
 }
 
 function onSubmit(event) {
@@ -90,7 +146,7 @@ function onSubmit(event) {
     status: sanitizeStatus(els.status.value),
     applicationDate: sanitizeDate(els.applicationDate.value),
     interviewDate: sanitizeDate(els.interviewDate.value),
-    location: sanitizeText(els.location.value, 120),
+    location: sanitizeText(formatLocation(els.city.value, els.state.value), 120),
     notes: sanitizeText(els.notes.value, 800),
     updatedAt: new Date().toISOString(),
   };
@@ -179,6 +235,51 @@ function hideToast() {
   els.toastMessage.textContent = "";
 }
 
+function populateStateOptions() {
+  const options = Object.keys(STATE_CITIES)
+    .sort()
+    .map((stateCode) => `<option value="${stateCode}">${stateCode}</option>`)
+    .join("");
+  els.state.insertAdjacentHTML("beforeend", options);
+  populateCityOptions("");
+}
+
+function populateCityOptions(stateCode, selectedCity = "") {
+  const cities = STATE_CITIES[stateCode] || [];
+  els.city.innerHTML = `<option value="">Select a city</option>`;
+  cities.forEach((city) => {
+    const option = document.createElement("option");
+    option.value = city;
+    option.textContent = city;
+    els.city.appendChild(option);
+  });
+  els.city.disabled = !cities.length;
+  if (selectedCity && cities.includes(selectedCity)) {
+    els.city.value = selectedCity;
+  }
+}
+
+function handleStateChange() {
+  populateCityOptions(els.state.value);
+}
+
+function formatLocation(city, stateCode) {
+  if (!city || !stateCode) return "";
+  return `${city}, ${stateCode}`;
+}
+
+function parseLocation(location) {
+  const value = sanitizeText(location, 120);
+  const match = value.match(/^(.+),\s*([A-Z]{2})$/);
+  if (!match) return { city: "", state: "" };
+  const city = match[1];
+  const stateCode = match[2];
+  if (!STATE_CITIES[stateCode] || !STATE_CITIES[stateCode].includes(city)) {
+    return { city: "", state: "" };
+  }
+  return { city, state: stateCode };
+}
+
 function startEdit(id) {
   const job = state.jobs.find((item) => item.id === id);
   if (!job) return;
@@ -189,7 +290,9 @@ function startEdit(id) {
   els.status.value = job.status;
   els.applicationDate.value = job.applicationDate;
   els.interviewDate.value = job.interviewDate;
-  els.location.value = job.location;
+  const parsed = parseLocation(job.location);
+  els.state.value = parsed.state;
+  populateCityOptions(parsed.state, parsed.city);
   els.notes.value = job.notes;
 
   els.cancelEditBtn.hidden = false;
@@ -203,6 +306,7 @@ function resetEditState() {
 
 function resetForm() {
   els.form.reset();
+  populateCityOptions("");
   resetEditState();
 }
 

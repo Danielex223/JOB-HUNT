@@ -5,6 +5,7 @@ A complete browser-based tracker for job applications and interviews, built with
 ## Features
 
 - Add, edit, and delete job application entries.
+- Pick location with linked State → City dropdowns (all U.S. states + city options per state).
 - Filter entries by status.
 - Sort by application date, interview date, company, or status (ascending/descending).
 - Persistent data storage with `localStorage`.
