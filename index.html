@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job & Interview Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <h1>Job & Interview Tracker</h1>
+        <p>Track applications, interviews, and deadlines locally in your browser.</p>
+      </header>
+
+      <section class="card" aria-labelledby="entry-form-title">
+        <h2 id="entry-form-title">Add / Edit Job Entry</h2>
+        <form id="job-form" class="form-grid">
+          <input type="hidden" id="job-id" />
+
+          <label>
+            Company
+            <input id="company" name="company" type="text" required maxlength="120" />
+          </label>
+
+          <label>
+            Position
+            <input id="position" name="position" type="text" required maxlength="120" />
+          </label>
+
+          <label>
+            Status
+            <select id="status" name="status" required>
+              <option value="Applied">Applied</option>
+              <option value="Interview Scheduled">Interview Scheduled</option>
+              <option value="Offer">Offer</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Archived">Archived</option>
+            </select>
+          </label>
+
+          <label>
+            Application Date
+            <input id="applicationDate" name="applicationDate" type="date" required />
+          </label>
+
+          <label>
+            Interview Date
+            <input id="interviewDate" name="interviewDate" type="date" />
+          </label>
+
+          <label>
+            State
+            <select id="state" name="state">
+              <option value="">Select a state</option>
+            </select>
+          </label>
+
+          <label>
+            City
+            <select id="city" name="city" disabled>
+              <option value="">Select a city</option>
+            </select>
+          </label>
+
+          <label class="full-width">
+            Notes
+            <textarea id="notes" name="notes" rows="3" maxlength="800" placeholder="Key details, recruiter contact, salary range..."></textarea>
+          </label>
+
+          <div class="form-actions full-width">
+            <button type="submit" class="btn primary" id="save-btn">Save Job</button>
+            <button type="button" class="btn" id="cancel-edit-btn" hidden>Cancel Edit</button>
+            <button type="reset" class="btn ghost" id="clear-form-btn">Clear</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="controls-title">
+        <h2 id="controls-title">Filters & Tools</h2>
+        <div class="controls-grid">
+          <label>
+            Filter Status
+            <select id="filter-status">
+              <option value="All">All</option>
+              <option value="Applied">Applied</option>
+              <option value="Interview Scheduled">Interview Scheduled</option>
+              <option value="Offer">Offer</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Archived">Archived</option>
+            </select>
+          </label>
+
+          <label>
+            Sort By
+            <select id="sort-by">
+              <option value="applicationDate">Application Date</option>
+              <option value="interviewDate">Interview Date</option>
+              <option value="company">Company</option>
+              <option value="status">Status</option>
+            </select>
+          </label>
+
+          <label>
+            Sort Direction
+            <select id="sort-direction">
+              <option value="desc">Descending</option>
+              <option value="asc">Ascending</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="import-export">
+          <button class="btn" id="export-csv-btn" type="button">Export CSV</button>
+          <label class="btn ghost file-upload" for="csv-import-input">Import CSV</label>
+          <input id="csv-import-input" type="file" accept=".csv,text/csv" />
+        </div>
+      </section>
+
+      <section class="card" aria-live="polite">
+        <h2>Tracked Jobs</h2>
+        <p id="summary"></p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Position</th>
+                <th>Status</th>
+                <th>Applied</th>
+                <th>Interview</th>
+                <th>Location</th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="jobs-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" hidden role="status" aria-live="polite">
+      <span id="toast-message"></span>
+      <button id="undo-delete-btn" type="button" class="btn small ghost">Undo</button>
+    </div>
+
+    <template id="row-template">
+      <tr>
+        <td data-field="company"></td>
+        <td data-field="position"></td>
+        <td data-field="status"></td>
+        <td data-field="applicationDate"></td>
+        <td data-field="interviewDate"></td>
+        <td data-field="location"></td>
+        <td data-field="notes"></td>
+        <td>
+          <div class="row-actions">
+            <button class="btn small" data-action="edit" type="button">Edit</button>
+            <button class="btn danger small" data-action="delete" type="button">Delete</button>
+          </div>
+        </td>
+      </tr>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>
