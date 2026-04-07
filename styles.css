@@ -259,27 +259,6 @@ td {
   background: #e8edf5;
 }
 
-.toast {
-  position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  background: #1d2a43;
-  color: #fff;
-  padding: 0.65rem 0.8rem;
-  border-radius: 10px;
-  box-shadow: 0 12px 24px rgba(10, 14, 24, 0.25);
-  z-index: 999;
-}
-
-.toast .btn {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
 @media (max-width: 680px) {
   .app {
     width: 96vw;
