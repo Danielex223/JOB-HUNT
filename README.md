@@ -6,12 +6,12 @@ A complete browser-based tracker for job applications and interviews, built with
 
 - Add, edit, and delete job application entries.
 - Filter entries by status.
-- Sort by application date, company, or status (ascending/descending).
+- Sort by application date, interview date, company, or status (ascending/descending).
 - Persistent data storage with `localStorage`.
-- CSV export and import support.
+- CSV export and import support with input sanitization.
 - Browser notifications for interviews scheduled for **today**.
 - Responsive, lively UI with colorful status badges and a polished dashboard style.
-- Responsive UI for desktop and mobile.
+- Non-blocking delete with an undo toast.
 
 ## Project Structure
 

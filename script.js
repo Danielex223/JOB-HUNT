@@ -14,6 +14,8 @@ const state = {
   filterStatus: "All",
   sortBy: "applicationDate",
   sortDirection: "desc",
+  pendingDelete: null,
+  pendingDeleteTimeoutId: null,
 };
 
 const els = {
@@ -36,6 +38,9 @@ const els = {
   tbody: document.getElementById("jobs-tbody"),
   rowTemplate: document.getElementById("row-template"),
   summary: document.getElementById("summary"),
+  toast: document.getElementById("toast"),
+  toastMessage: document.getElementById("toast-message"),
+  undoDeleteBtn: document.getElementById("undo-delete-btn"),
 };
 
 init();
@@ -72,6 +77,7 @@ function bindEvents() {
   els.tbody.addEventListener("click", handleTableAction);
   els.exportCsvBtn.addEventListener("click", exportCsv);
   els.csvImportInput.addEventListener("change", importCsv);
+  els.undoDeleteBtn.addEventListener("click", undoDelete);
 }
 
 function onSubmit(event) {
@@ -79,13 +85,13 @@ function onSubmit(event) {
 
   const entry = {
     id: els.jobId.value || crypto.randomUUID(),
-    company: els.company.value.trim(),
-    position: els.position.value.trim(),
-    status: els.status.value,
-    applicationDate: els.applicationDate.value,
-    interviewDate: els.interviewDate.value,
-    location: els.location.value.trim(),
-    notes: els.notes.value.trim(),
+    company: sanitizeText(els.company.value, 120),
+    position: sanitizeText(els.position.value, 120),
+    status: sanitizeStatus(els.status.value),
+    applicationDate: sanitizeDate(els.applicationDate.value),
+    interviewDate: sanitizeDate(els.interviewDate.value),
+    location: sanitizeText(els.location.value, 120),
+    notes: sanitizeText(els.notes.value, 800),
     updatedAt: new Date().toISOString(),
   };
 
@@ -121,15 +127,56 @@ function handleTableAction(event) {
   }
 
   if (actionBtn.dataset.action === "delete") {
-    const ok = confirm("Delete this job entry?");
-    if (!ok) return;
-    state.jobs = state.jobs.filter((job) => job.id !== id);
-    persistJobs();
-    if (els.jobId.value === id) {
-      resetForm();
-    }
-    render();
+    deleteWithUndo(id);
   }
+}
+
+function deleteWithUndo(id) {
+  const deleted = state.jobs.find((job) => job.id === id);
+  if (!deleted) return;
+
+  clearPendingDelete();
+  state.pendingDelete = deleted;
+  state.jobs = state.jobs.filter((job) => job.id !== id);
+  if (els.jobId.value === id) {
+    resetForm();
+  }
+  persistJobs();
+  render();
+
+  showToast(`Deleted ${deleted.company} — ${deleted.position}`);
+  state.pendingDeleteTimeoutId = window.setTimeout(() => {
+    clearPendingDelete();
+    hideToast();
+  }, 6000);
+}
+
+function undoDelete() {
+  if (!state.pendingDelete) return;
+  state.jobs.push(state.pendingDelete);
+  persistJobs();
+  render();
+  clearPendingDelete();
+  showToast("Delete undone.");
+  window.setTimeout(hideToast, 2000);
+}
+
+function clearPendingDelete() {
+  if (state.pendingDeleteTimeoutId) {
+    clearTimeout(state.pendingDeleteTimeoutId);
+  }
+  state.pendingDelete = null;
+  state.pendingDeleteTimeoutId = null;
+}
+
+function showToast(message) {
+  els.toastMessage.textContent = message;
+  els.toast.hidden = false;
+}
+
+function hideToast() {
+  els.toast.hidden = true;
+  els.toastMessage.textContent = "";
 }
 
 function startEdit(id) {
@@ -171,6 +218,8 @@ function getVisibleJobs() {
 
     if (state.sortBy === "applicationDate") {
       result = (a.applicationDate || "").localeCompare(b.applicationDate || "");
+    } else if (state.sortBy === "interviewDate") {
+      result = (a.interviewDate || "9999-99-99").localeCompare(b.interviewDate || "9999-99-99");
     } else if (state.sortBy === "company") {
       result = a.company.localeCompare(b.company);
     } else if (state.sortBy === "status") {
@@ -199,11 +248,17 @@ function render() {
 
       row.querySelector('[data-field="company"]').textContent = job.company;
       row.querySelector('[data-field="position"]').textContent = job.position;
-      row.querySelector('[data-field="status"]').textContent = job.status;
+      const statusCell = row.querySelector('[data-field="status"]');
+      const pill = document.createElement("span");
+      pill.className = `status-pill ${statusClass(job.status)}`;
+      pill.setAttribute("role", "status");
+      pill.setAttribute("aria-label", `Application status: ${job.status}`);
+      pill.textContent = job.status;
+      statusCell.appendChild(pill);
       row.querySelector('[data-field="applicationDate"]').textContent = formatDate(job.applicationDate);
       row.querySelector('[data-field="interviewDate"]').textContent = formatDate(job.interviewDate);
       row.querySelector('[data-field="location"]').textContent = job.location || "—";
-      row.querySelector('[data-field="notes"]').textContent = job.notes || "—";
+      renderNotes(row.querySelector('[data-field="notes"]'), job.notes);
 
       els.tbody.appendChild(fragment);
     });
@@ -216,6 +271,65 @@ function render() {
 
 function statusClass(status) {
   return `status-${status.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+}
+
+function sanitizeText(value, maxLength) {
+  return String(value || "")
+    .replace(/[\u0000-\u001F\u007F]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function sanitizeStatus(value) {
+  const cleaned = sanitizeText(value, 40);
+  return STATUS_ORDER[cleaned] ? cleaned : "Applied";
+}
+
+function sanitizeDate(value) {
+  const dateValue = String(value || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateValue) ? dateValue : "";
+}
+
+function sanitizeJob(job) {
+  return {
+    id: sanitizeText(job.id || crypto.randomUUID(), 60),
+    company: sanitizeText(job.company, 120),
+    position: sanitizeText(job.position, 120),
+    status: sanitizeStatus(job.status),
+    applicationDate: sanitizeDate(job.applicationDate),
+    interviewDate: sanitizeDate(job.interviewDate),
+    location: sanitizeText(job.location, 120),
+    notes: sanitizeText(job.notes, 800),
+    updatedAt: String(job.updatedAt || new Date().toISOString()),
+  };
+}
+
+function renderNotes(cell, notes) {
+  const text = notes || "—";
+  const wrap = document.createElement("div");
+  wrap.className = "notes-wrap";
+  const content = document.createElement("span");
+  content.className = "notes-text";
+  content.textContent = text;
+  content.title = notes || "";
+  wrap.appendChild(content);
+
+  if (notes && notes.length > 110) {
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "btn small ghost notes-toggle";
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.textContent = "More";
+    toggle.addEventListener("click", () => {
+      const expanded = wrap.classList.toggle("expanded");
+      toggle.textContent = expanded ? "Less" : "More";
+      toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    });
+    wrap.appendChild(toggle);
+  }
+
+  cell.appendChild(wrap);
 }
 
 function loadJobs() {
@@ -240,17 +354,7 @@ function isValidJob(value) {
 }
 
 function normalizeJob(job) {
-  return {
-    id: String(job.id || crypto.randomUUID()),
-    company: String(job.company || ""),
-    position: String(job.position || ""),
-    status: String(job.status || "Applied"),
-    applicationDate: String(job.applicationDate || ""),
-    interviewDate: String(job.interviewDate || ""),
-    location: String(job.location || ""),
-    notes: String(job.notes || ""),
-    updatedAt: String(job.updatedAt || ""),
-  };
+  return sanitizeJob(job);
 }
 
 function formatDate(dateString) {
@@ -306,17 +410,7 @@ function importCsv(event) {
       }
 
       const normalized = importedRows
-        .map((row) => ({
-          id: row.id || crypto.randomUUID(),
-          company: row.company || "",
-          position: row.position || "",
-          status: row.status || "Applied",
-          applicationDate: row.applicationDate || "",
-          interviewDate: row.interviewDate || "",
-          location: row.location || "",
-          notes: row.notes || "",
-          updatedAt: row.updatedAt || new Date().toISOString(),
-        }))
+        .map(sanitizeJob)
         .filter((row) => row.company && row.position && row.applicationDate);
 
       if (!normalized.length) {
