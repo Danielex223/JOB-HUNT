@@ -199,11 +199,7 @@ function render() {
 
       row.querySelector('[data-field="company"]').textContent = job.company;
       row.querySelector('[data-field="position"]').textContent = job.position;
-      const statusCell = row.querySelector('[data-field="status"]');
-      const pill = document.createElement("span");
-      pill.className = `status-pill ${statusClass(job.status)}`;
-      pill.textContent = job.status;
-      statusCell.appendChild(pill);
+      row.querySelector('[data-field="status"]').textContent = job.status;
       row.querySelector('[data-field="applicationDate"]').textContent = formatDate(job.applicationDate);
       row.querySelector('[data-field="interviewDate"]').textContent = formatDate(job.interviewDate);
       row.querySelector('[data-field="location"]').textContent = job.location || "—";
