@@ -332,7 +332,7 @@ function render() {
 
   if (visible.length === 0) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="10">No jobs found for current filter.</td>`;
+    tr.innerHTML = `<td colspan="9">No jobs found for current filter.</td>`;
     els.tbody.appendChild(tr);
   } else {
     visible.forEach((job) => {
