@@ -161,6 +161,10 @@ function onSubmit(event) {
     return;
   }
 
+  if (entry.status !== "Accepted") {
+    entry.startDate = "";
+  }
+
   if (entry.status === "Accepted" && !entry.startDate) {
     alert("Nice! Marked as accepted — when are you starting? Add a start date.");
     els.startDate.focus();
@@ -247,9 +251,7 @@ function handleStatusChange() {
   els.startDateGroup.setAttribute("aria-hidden", accepted ? "false" : "true");
   els.startDate.required = accepted;
   els.startDate.disabled = !accepted;
-  if (!accepted) {
-    els.startDate.value = "";
-  } else if (document.activeElement === els.status) {
+  if (accepted && document.activeElement === els.status) {
     els.startDate.focus();
   }
 }
