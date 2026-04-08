@@ -79,6 +79,7 @@ const els = {
   applicationDate: document.getElementById("applicationDate"),
   interviewDate: document.getElementById("interviewDate"),
   startDate: document.getElementById("startDate"),
+  startDateGroup: document.getElementById("start-date-group"),
   state: document.getElementById("state"),
   city: document.getElementById("city"),
   notes: document.getElementById("notes"),
@@ -100,6 +101,7 @@ function init() {
   state.jobs = loadJobs();
   populateStateOptions();
   bindEvents();
+  handleStatusChange();
   render();
   maybeTriggerInterviewNotifications();
 }
@@ -130,6 +132,7 @@ function bindEvents() {
   els.exportCsvBtn.addEventListener("click", exportCsv);
   els.csvImportInput.addEventListener("change", importCsv);
   els.state.addEventListener("change", handleStateChange);
+  els.status.addEventListener("change", handleStatusChange);
 }
 
 function onSubmit(event) {
@@ -150,6 +153,11 @@ function onSubmit(event) {
 
   if (!entry.company || !entry.position || !entry.applicationDate) {
     alert("Company, position, and application date are required.");
+    return;
+  }
+
+  if (!els.state.value || !els.city.value) {
+    alert("State and city are required.");
     return;
   }
 
@@ -233,6 +241,15 @@ function handleStateChange() {
   populateCityOptions(els.state.value);
 }
 
+function handleStatusChange() {
+  const accepted = els.status.value === "Accepted";
+  els.startDateGroup.hidden = !accepted;
+  els.startDate.required = accepted;
+  if (!accepted) {
+    els.startDate.value = "";
+  }
+}
+
 function formatLocation(city, stateCode) {
   if (!city || !stateCode) return "";
   return `${city}, ${stateCode}`;
@@ -258,6 +275,7 @@ function startEdit(id) {
   els.company.value = job.company;
   els.position.value = job.position;
   els.status.value = job.status;
+  handleStatusChange();
   els.applicationDate.value = job.applicationDate;
   els.interviewDate.value = job.interviewDate;
   els.startDate.value = job.startDate || "";
@@ -278,6 +296,7 @@ function resetEditState() {
 function resetForm() {
   els.form.reset();
   populateCityOptions("");
+  handleStatusChange();
   resetEditState();
 }
 
@@ -313,7 +332,7 @@ function render() {
 
   if (visible.length === 0) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="9">No jobs found for current filter.</td>`;
+    tr.innerHTML = `<td colspan="10">No jobs found for current filter.</td>`;
     els.tbody.appendChild(tr);
   } else {
     visible.forEach((job) => {
@@ -337,6 +356,7 @@ function render() {
         .querySelector('[data-action="delete"]')
         .setAttribute("aria-label", `Delete ${job.company} – ${job.position}`);
       row.querySelector('[data-field="applicationDate"]').textContent = formatDate(job.applicationDate);
+      row.querySelector('[data-field="daysApplied"]').textContent = calculateDaysApplied(job.applicationDate);
       row.querySelector('[data-field="interviewDate"]').textContent = formatDate(job.interviewDate);
       row.querySelector('[data-field="startDate"]').textContent = formatDate(job.startDate);
       row.querySelector('[data-field="location"]').textContent = job.location || "—";
@@ -349,7 +369,29 @@ function render() {
   const scheduled = state.jobs.filter((job) => job.interviewDate).length;
   const offers = state.jobs.filter((job) => job.status === "Offer").length;
   const accepted = state.jobs.filter((job) => job.status === "Accepted").length;
-  els.summary.textContent = `${visible.length} shown / ${state.jobs.length} total jobs • ${scheduled} interviews set • ${offers} offers • ${accepted} accepted`;
+  const avgDaysApplied = calculateAverageDaysApplied(state.jobs);
+  els.summary.textContent = `${visible.length} shown / ${state.jobs.length} total jobs • ${scheduled} interviews set • ${offers} offers • ${accepted} accepted • avg ${avgDaysApplied} days applied`;
+}
+
+function calculateDaysApplied(applicationDate) {
+  if (!applicationDate) return "—";
+  const start = new Date(`${applicationDate}T00:00:00Z`);
+  if (Number.isNaN(start.getTime())) return "—";
+  const today = new Date();
+  const utcToday = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const elapsed = Math.floor((utcToday - start.getTime()) / 86400000);
+  return `${Math.max(0, elapsed)}d`;
+}
+
+function calculateAverageDaysApplied(jobs) {
+  const days = jobs
+    .map((job) => calculateDaysApplied(job.applicationDate))
+    .filter((value) => value !== "—")
+    .map((value) => Number.parseInt(value, 10))
+    .filter(Number.isFinite);
+
+  if (!days.length) return 0;
+  return Math.round(days.reduce((sum, value) => sum + value, 0) / days.length);
 }
 
 function statusClass(status) {
