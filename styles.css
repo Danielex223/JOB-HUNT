@@ -232,6 +232,10 @@ td {
   border-radius: 50%;
   background: currentColor;
   opacity: 0.85;
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.52rem;
+  font-weight: 800;
 }
 
 .status-applied {
@@ -247,6 +251,21 @@ td {
 .status-offer {
   color: #0f7c5a;
   background: #d4f5eb;
+}
+
+.status-accepted {
+  color: #0d6b4d;
+  background: #c9f2e4;
+}
+
+.status-accepted::before {
+  content: "✓";
+  width: 0.82rem;
+  height: 0.82rem;
+  background: currentColor;
+  color: #fff;
+  border-radius: 50%;
+  opacity: 1;
 }
 
 .status-rejected {

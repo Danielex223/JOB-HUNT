@@ -6,13 +6,16 @@ A complete browser-based tracker for job applications and interviews, built with
 
 - Add, edit, and delete job application entries.
 - Pick location with linked State → City dropdowns (all U.S. states + city options per state).
+- State and city are required for each entry.
 - Filter entries by status.
+- Includes an **Accepted** status with a check-mark badge; start date is requested only for accepted jobs.
+- Tracks days since each application was submitted, plus average days applied in the summary.
 - Sort by application date, interview date, company, or status (ascending/descending).
 - Persistent data storage with `localStorage`.
 - CSV export and import support with input sanitization.
 - Browser notifications for interviews scheduled for **today**.
 - Responsive, lively UI with colorful status badges and a polished dashboard style.
-- Non-blocking delete with an undo toast.
+- Delete confirmation prompt before removing entries.
 
 ## Project Structure
 
@@ -37,7 +40,7 @@ Open `index.html` in any modern browser.
 Exported CSV columns:
 
 ```csv
-id,company,position,status,applicationDate,interviewDate,location,notes,updatedAt
+id,company,position,status,applicationDate,interviewDate,startDate,location,notes,updatedAt
 ```
 
 For imports, include at least:
