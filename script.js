@@ -330,6 +330,12 @@ function render() {
       pill.setAttribute("aria-label", `Application status: ${job.status}`);
       pill.textContent = job.status;
       statusCell.appendChild(pill);
+      row
+        .querySelector('[data-action="edit"]')
+        .setAttribute("aria-label", `Edit ${job.company} – ${job.position}`);
+      row
+        .querySelector('[data-action="delete"]')
+        .setAttribute("aria-label", `Delete ${job.company} – ${job.position}`);
       row.querySelector('[data-field="applicationDate"]').textContent = formatDate(job.applicationDate);
       row.querySelector('[data-field="interviewDate"]').textContent = formatDate(job.interviewDate);
       row.querySelector('[data-field="startDate"]').textContent = formatDate(job.startDate);
