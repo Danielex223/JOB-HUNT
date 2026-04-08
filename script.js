@@ -364,6 +364,7 @@ function render() {
       row.querySelector('[data-field="applicationDate"]').textContent = formatDate(job.applicationDate);
       row.querySelector('[data-field="daysApplied"]').textContent = calculateDaysApplied(job.applicationDate);
       row.querySelector('[data-field="interviewDate"]').textContent = formatDate(job.interviewDate);
+      row.querySelector('[data-field="startDate"]').textContent = formatDate(job.startDate);
       row.querySelector('[data-field="location"]').textContent = job.location || "—";
       renderNotes(row.querySelector('[data-field="notes"]'), job.notes);
 
