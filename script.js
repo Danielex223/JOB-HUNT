@@ -5,8 +5,9 @@ const STATUS_ORDER = {
   Applied: 1,
   "Interview Scheduled": 2,
   Offer: 3,
-  Rejected: 4,
-  Archived: 5,
+  Accepted: 4,
+  Rejected: 5,
+  Archived: 6,
 };
 
 const STATE_CITIES = {
@@ -77,6 +78,7 @@ const els = {
   status: document.getElementById("status"),
   applicationDate: document.getElementById("applicationDate"),
   interviewDate: document.getElementById("interviewDate"),
+  startDate: document.getElementById("startDate"),
   state: document.getElementById("state"),
   city: document.getElementById("city"),
   notes: document.getElementById("notes"),
@@ -140,6 +142,7 @@ function onSubmit(event) {
     status: sanitizeStatus(els.status.value),
     applicationDate: sanitizeDate(els.applicationDate.value),
     interviewDate: sanitizeDate(els.interviewDate.value),
+    startDate: sanitizeDate(els.startDate.value),
     location: sanitizeText(formatLocation(els.city.value, els.state.value), 120),
     notes: sanitizeText(els.notes.value, 800),
     updatedAt: new Date().toISOString(),
@@ -147,6 +150,12 @@ function onSubmit(event) {
 
   if (!entry.company || !entry.position || !entry.applicationDate) {
     alert("Company, position, and application date are required.");
+    return;
+  }
+
+  if (entry.status === "Accepted" && !entry.startDate) {
+    alert("Nice! Marked as accepted — when are you starting? Add a start date.");
+    els.startDate.focus();
     return;
   }
 
@@ -251,6 +260,7 @@ function startEdit(id) {
   els.status.value = job.status;
   els.applicationDate.value = job.applicationDate;
   els.interviewDate.value = job.interviewDate;
+  els.startDate.value = job.startDate || "";
   const parsed = parseLocation(job.location);
   els.state.value = parsed.state;
   populateCityOptions(parsed.state, parsed.city);
@@ -303,7 +313,7 @@ function render() {
 
   if (visible.length === 0) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="8">No jobs found for current filter.</td>`;
+    tr.innerHTML = `<td colspan="9">No jobs found for current filter.</td>`;
     els.tbody.appendChild(tr);
   } else {
     visible.forEach((job) => {
@@ -320,8 +330,15 @@ function render() {
       pill.setAttribute("aria-label", `Application status: ${job.status}`);
       pill.textContent = job.status;
       statusCell.appendChild(pill);
+      row
+        .querySelector('[data-action="edit"]')
+        .setAttribute("aria-label", `Edit ${job.company} – ${job.position}`);
+      row
+        .querySelector('[data-action="delete"]')
+        .setAttribute("aria-label", `Delete ${job.company} – ${job.position}`);
       row.querySelector('[data-field="applicationDate"]').textContent = formatDate(job.applicationDate);
       row.querySelector('[data-field="interviewDate"]').textContent = formatDate(job.interviewDate);
+      row.querySelector('[data-field="startDate"]').textContent = formatDate(job.startDate);
       row.querySelector('[data-field="location"]').textContent = job.location || "—";
       renderNotes(row.querySelector('[data-field="notes"]'), job.notes);
 
@@ -331,7 +348,8 @@ function render() {
 
   const scheduled = state.jobs.filter((job) => job.interviewDate).length;
   const offers = state.jobs.filter((job) => job.status === "Offer").length;
-  els.summary.textContent = `${visible.length} shown / ${state.jobs.length} total jobs • ${scheduled} interviews set • ${offers} offers`;
+  const accepted = state.jobs.filter((job) => job.status === "Accepted").length;
+  els.summary.textContent = `${visible.length} shown / ${state.jobs.length} total jobs • ${scheduled} interviews set • ${offers} offers • ${accepted} accepted`;
 }
 
 function statusClass(status) {
@@ -364,6 +382,7 @@ function sanitizeJob(job) {
     status: sanitizeStatus(job.status),
     applicationDate: sanitizeDate(job.applicationDate),
     interviewDate: sanitizeDate(job.interviewDate),
+    startDate: sanitizeDate(job.startDate),
     location: sanitizeText(job.location, 120),
     notes: sanitizeText(job.notes, 800),
     updatedAt: String(job.updatedAt || new Date().toISOString()),
@@ -435,6 +454,7 @@ function exportCsv() {
     "status",
     "applicationDate",
     "interviewDate",
+    "startDate",
     "location",
     "notes",
     "updatedAt",
